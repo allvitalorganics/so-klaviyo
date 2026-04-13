@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sensitive Ones — Complete Klaviyo Email System</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--mg:#B8255A;--bk:#0D0D0D;--wh:#FFFFFF;--cream:#FAF8F6;--pink:#FFF0F3}
+body{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;background:#080808;color:#fff;padding:0}
+.header{background:#0a0a0a;border-bottom:1px solid #222;padding:16px 24px;position:sticky;top:0;z-index:100}
+.header h1{font-size:16px;font-weight:800;color:var(--mg)}
+.header p{font-size:9px;color:#555;margin-top:2px}
+.filters{display:flex;gap:3px;flex-wrap:wrap;margin-top:8px}
+.fbtn{padding:4px 9px;border-radius:100px;font-size:7px;font-weight:700;cursor:pointer;border:1px solid #333;color:#555;transition:.12s;letter-spacing:.2px;text-transform:uppercase}
+.fbtn:hover{border-color:var(--mg);color:#fff}
+.fbtn.on{background:var(--mg);color:#fff;border-color:var(--mg)}
+
+.wrap{max-width:1100px;margin:0 auto;padding:24px}
+.flow{display:none;margin-bottom:32px}.flow.show{display:block}
+.flow-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.flow-num{width:36px;height:36px;border-radius:50%;background:var(--mg);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex-shrink:0}
+.flow-title{font-size:16px;font-weight:800}
+.flow-sub{font-size:10px;color:#555}
+.flow-phase{font-size:7px;padding:3px 8px;border-radius:100px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;margin-left:auto}
+.phase-pre{background:rgba(230,126,34,.1);color:#e67e22;border:1px solid rgba(230,126,34,.2)}
+.phase-launch{background:rgba(39,174,96,.1);color:#27ae60;border:1px solid rgba(39,174,96,.2)}
+.phase-post{background:rgba(52,152,219,.1);color:#3498db;border:1px solid rgba(52,152,219,.2)}
+.phase-always{background:rgba(155,89,182,.1);color:#9b59b6;border:1px solid rgba(155,89,182,.2)}
+
+.flow-meta{background:#111;border:1px solid #222;border-radius:8px;padding:12px;margin-bottom:12px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
+.flow-meta div{text-align:center}
+.flow-meta .label{font-size:7px;color:#555;letter-spacing:1px;text-transform:uppercase}
+.flow-meta .val{font-size:13px;font-weight:700;color:var(--mg);margin-top:2px}
+
+.emails{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+
+/* EMAIL CARD */
+.email{background:#111;border:1px solid #1a1a1a;border-radius:10px;overflow:hidden}
+.em-mock{position:relative;width:100%;aspect-ratio:9/16;max-height:360px;overflow:hidden;display:flex;flex-direction:column;padding:16px 14px}
+.em-mock .em-num{position:absolute;top:6px;left:6px;background:var(--mg);color:#fff;font-size:7px;font-weight:800;padding:2px 5px;border-radius:3px}
+.em-mock .em-day{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.5);color:#888;font-size:7px;font-weight:600;padding:2px 5px;border-radius:3px}
+
+/* Email visual styles */
+.em-w{background:linear-gradient(180deg,var(--pink) 0%,#fff 60%,#fff 100%)}
+.em-c{background:linear-gradient(180deg,var(--cream) 0%,#fff 100%)}
+.em-m{background:linear-gradient(180deg,var(--mg) 0%,#c0446e 100%);color:#fff}
+.em-d{background:linear-gradient(180deg,#1a1a1a 0%,var(--bk) 100%);color:#fff}
+
+.em-mock .em-brand{font-family:'Times New Roman',Georgia,serif;font-size:11px;letter-spacing:2px;color:var(--mg);font-style:italic;text-align:center;margin-top:16px}
+.em-mock .em-hero{font-family:'Times New Roman',Georgia,serif;font-size:16px;font-weight:400;line-height:1.25;text-align:center;margin:auto 0;color:var(--bk)}
+.em-mock .em-sub{font-size:8px;text-align:center;opacity:.6;margin-top:6px;line-height:1.5}
+.em-mock .em-cta{background:var(--mg);color:#fff;padding:6px 16px;border-radius:100px;font-size:8px;font-weight:700;text-align:center;margin:8px auto 0;display:inline-block}
+.em-mock .em-msg{background:rgba(0,0,0,.03);border-radius:8px;padding:8px;margin:6px 0;text-align:left}
+.em-mock .em-msg-r{background:rgba(184,37,90,.08);border-radius:8px;padding:6px 8px;margin:3px 0 3px 30%;text-align:right;font-size:7px;color:var(--mg)}
+.em-mock .em-msg-l{background:rgba(0,0,0,.04);border-radius:8px;padding:6px 8px;margin:3px 30% 3px 0;text-align:left;font-size:7px;color:var(--bk)}
+.em-mock .em-footer{font-size:6px;color:#999;text-align:center;margin-top:auto;padding-top:8px}
+
+.em-info{padding:10px 12px}
+.em-info .em-t{font-size:10px;font-weight:700;color:#fff;margin-bottom:2px}
+.em-info .em-d{font-size:8px;color:#666;line-height:1.5}
+.em-info .em-tags{display:flex;gap:3px;flex-wrap:wrap;margin-top:4px}
+.em-info .tag{font-size:6px;padding:2px 5px;border-radius:100px;font-weight:600;letter-spacing:.2px}
+.t-trigger{background:rgba(39,174,96,.08);color:#27ae60;border:1px solid rgba(39,174,96,.15)}
+.t-goal{background:rgba(52,152,219,.08);color:#3498db;border:1px solid rgba(52,152,219,.15)}
+.t-dshea{background:rgba(192,57,43,.06);color:#c0392b;border:1px solid rgba(192,57,43,.12)}
+
+/* CONNECTOR */
+.connector{text-align:center;padding:4px 0}
+.connector .arrow{color:#333;font-size:14px}
+.connector .wait{font-size:7px;color:#555;background:#111;display:inline-block;padding:2px 8px;border-radius:100px;border:1px solid #222}
+</style>
+</head>
+<body>
+
+<div class="header">
+<h1>SENSITIVE ONES — COMPLETE KLAVIYO EMAIL SYSTEM</h1>
+<p>Every flow · Every trigger · Every email with visual mockup · Phased: <span style="color:#e67e22">PRE-LAUNCH</span> → <span style="color:#27ae60">LAUNCH</span> → <span style="color:#3498db">POST-LAUNCH</span> → <span style="color:#9b59b6">ALWAYS-ON</span></p>
+<div class="filters">
+<div class="fbtn on" onclick="ff('all')">All Flows (14)</div>
+<div class="fbtn" style="border-color:#e67e22;color:#e67e22" onclick="ff('pre')">Pre-Launch (3)</div>
+<div class="fbtn" style="border-color:#27ae60;color:#27ae60" onclick="ff('launch')">Launch (3)</div>
+<div class="fbtn" style="border-color:#3498db;color:#3498db" onclick="ff('post')">Post-Launch (4)</div>
+<div class="fbtn" style="border-color:#9b59b6;color:#9b59b6" onclick="ff('always')">Always-On (4)</div>
+</div>
+</div>
+
+<div class="wrap">
+
+<!-- ████████████████████████████████████████████████████████████████ -->
+<!-- FLOW 1: PRE-LAUNCH WELCOME / HYPE -->
+<!-- ████████████████████████████████████████████████████████████████ -->
+<div class="flow show" data-phase="pre">
+<div class="flow-header">
+<div class="flow-num">1</div>
+<div><div class="flow-title">Pre-Launch Welcome (Hype)</div><div class="flow-sub">Trigger: email signup on waitlist page · 6 emails over 28 days</div></div>
+<div class="flow-phase phase-pre">PRE-LAUNCH</div>
+</div>
+<div class="flow-meta">
+<div><div class="label">Trigger</div><div class="val">Email signup</div></div>
+<div><div class="label">Emails</div><div class="val">6</div></div>
+<div><div class="label">Duration</div><div class="val">28 days</div></div>
+<div><div class="label">Goal</div><div class="val">Hype + Follow</div></div>
+</div>
+<p style="font-size:9px;color:#666;margin-bottom:12px">Theo's "Your secret friend" iMessage format. Pink-to-white gradient. Conversational, educational, never salesy. No pricing shown. Sender: "Alex from Sensitive Ones." This is the CURRENT flow (Apr 12 designs).</p>
+<div class="emails">
+
+<div class="email"><div class="em-mock em-w"><div class="em-num">1.1</div><div class="em-day">Day 0</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;width:100%"><div class="em-msg-l">Most of them don't tell you how much is actually inside</div><div class="em-msg-r">so why do they do it?</div><div class="em-msg-l">It's called a "proprietary blend." A legal way to list ingredients without disclosing doses.</div><div class="em-msg-r">what do we do differently?</div><div class="em-msg-l">5,000mg Verisol® collagen. No proprietary blends. No hiding.</div></div><p style="font-family:'Times New Roman',Georgia,serif;font-size:12px;text-align:center;color:var(--bk);margin-top:8px">More coming soon.<br>You're on the list.</p></div><div class="em-info"><p class="em-t">"You noticed something"</p><p class="em-d">Hook: proprietary blends exposed. Establishes SO as truth-teller from message 1. CTA: stay on list.</p><div class="em-tags"><span class="tag t-trigger">Trigger: immediate</span><span class="tag t-goal">Educate + retain</span></div></div></div>
+
+<div class="email"><div class="em-mock em-w"><div class="em-num">1.2</div><div class="em-day">Day 3</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:16px;color:var(--bk)">What's<br>fairy dusting?</p><div style="margin:8px 0"><div class="em-msg-r">you mentioned doses last time. what's the actual problem?</div><div class="em-msg-l">The clinical study used 2,500-5,000mg daily for 8-12 weeks.</div><div class="em-msg-l">Some put in as low as <strong>50mg</strong> and still write "collagen" on the bottle.</div><div class="em-msg-r">50mg?? how is that enough</div><div class="em-msg-l">It's not. The industry calls it <strong>fairy dusting</strong>.</div></div></div><p style="font-size:8px;text-align:center;color:var(--bk);opacity:.6">We publish every dose. You can check.</p></div><div class="em-info"><p class="em-t">"5,000mg vs 50mg. What's fairy dusting?"</p><p class="em-d">Best email in the sequence. Teaches a concept (fairy dusting) that creates permanent suspicion of competitors.</p><div class="em-tags"><span class="tag t-trigger">Wait: 3 days</span><span class="tag t-goal">Educate</span><span class="tag t-dshea">DSHEA needed</span></div></div></div>
+
+<div class="email"><div class="em-mock em-w"><div class="em-num">1.3</div><div class="em-day">Day 7</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:14px;color:var(--bk)">What's actually in it?</p><div style="margin:8px 0"><div class="em-msg-r">ok so what's inside Skin Support</div><div class="em-msg-l"><strong>Verisol® Collagen — 5,000mg</strong><br>The clinically studied dose.</div><div class="em-msg-l"><strong>Hyaluronic Acid — 120mg</strong><br>Gets to the dermis from inside.</div><div class="em-msg-l"><strong>Vitamin C — 200mg</strong><br>Collagen can't work without it.</div><div class="em-msg-l"><strong>Pine Bark Extract</strong><br>Protects the collagen you already have.</div></div></div><p style="font-family:'Times New Roman',Georgia,serif;font-size:11px;text-align:center;color:var(--bk)">You'll be the first to try it.</p></div><div class="em-info"><p class="em-t">"Four ingredients. All published."</p><p class="em-d">Reveals hero ingredients. ⚠️ FIX NEEDED: product has 8 ingredients. Say "4 hero ingredients + 4 supporting vitamins" not "Four things. That's it."</p><div class="em-tags"><span class="tag t-trigger">Wait: 4 days</span><span class="tag t-goal">Educate + anticipation</span><span class="tag t-dshea">DSHEA needed</span></div></div></div>
+
+<div class="email"><div class="em-mock em-w"><div class="em-num">2.1</div><div class="em-day">Day 14</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:14px;color:var(--bk)">Wait you made<br>a card game?</p><div style="margin:8px 0"><div class="em-msg-r">I saw something about a card game?</div><div class="em-msg-l">Yeah. It's called <strong>Industry Tea.</strong></div><div class="em-msg-l">100 physical cards. Each one calls out something real about the supplement industry.</div><div class="em-msg-r">give me an example</div><div style="background:var(--mg);color:#fff;border-radius:6px;padding:8px;margin:4px 0;font-size:8px;font-weight:700">"I added ___ because it's trending right now."</div></div></div></div><div class="em-info"><p class="em-t">"100 cards. 1,176 combinations."</p><p class="em-d">Introduces Industry Tea. Entertainment that reinforces transparency message. No product sell.</p><div class="em-tags"><span class="tag t-trigger">Wait: 7 days</span><span class="tag t-goal">Entertainment + brand</span></div></div></div>
+
+<div class="email"><div class="em-mock em-w"><div class="em-num">2.2</div><div class="em-day">Day 21</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:14px;color:var(--bk)">How do you take it?</p><div style="margin:8px 0"><div class="em-msg-r">how does it actually work?</div><div class="em-msg-l">It's one bottle. Everything's in it.</div><div class="em-msg-l">Two tablets sit on the cap. Liquid shot is underneath. 25ml.</div><div class="em-msg-l">Open the cap. Take the tablets. Drink the shot.</div><div class="em-msg-l"><strong>Under 30 seconds. Done.</strong></div><div class="em-msg-r">no mixing or measuring?</div><div class="em-msg-l">No water. No scoop. No blender. One object, one ritual.</div></div></div></div><div class="em-info"><p class="em-t">"Cap. Tablets. Shot. Done."</p><p class="em-d">Format education. Nobody has seen a dual-cap before. Builds excitement for the physical experience.</p><div class="em-tags"><span class="tag t-trigger">Wait: 7 days</span><span class="tag t-goal">Format education</span></div></div></div>
+
+<div class="email"><div class="em-mock em-w"><div class="em-num">2.3</div><div class="em-day">Day 28</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:14px;color:var(--bk)">Why are you<br>doing this?</p><div style="margin:8px 0"><div class="em-msg-r">I keep getting your emails. Why?</div><div class="em-msg-l">Because the industry has been getting away with it for too long.</div><div class="em-msg-l">Hiding doses behind "proprietary blends." Charging $60 for $2 of ingredients.</div><div class="em-msg-r">and you think a new brand can change that?</div><div class="em-msg-l">We think publishing everything is a start.</div><div style="background:var(--mg);color:#fff;border-radius:6px;padding:6px 8px;margin:4px 0;font-size:8px;font-weight:700">This was built for you.</div></div></div><p style="font-size:7px;text-align:center;color:var(--bk);opacity:.5">Stay close. Follow us.</p></div><div class="em-info"><p class="em-t">"Why are you doing this?" — Manifesto</p><p class="em-d">"This was built for you." = strongest line in the sequence. Closes 28-day journey. CTA: follow @sensitiveones.</p><div class="em-tags"><span class="tag t-trigger">Wait: 7 days</span><span class="tag t-goal">Manifesto + follow</span></div></div></div>
+
+</div>
+</div>
+
+<!-- ████████████████████████████████████████████████████████████████ -->
+<!-- FLOW 2: PRE-LAUNCH NURTURE (after welcome ends) -->
+<!-- ████████████████████████████████████████████████████████████████ -->
+<div class="flow show" data-phase="pre">
+<div class="flow-header">
+<div class="flow-num">2</div>
+<div><div class="flow-title">Pre-Launch Nurture (Post-Welcome)</div><div class="flow-sub">Trigger: completed Flow 1 + hasn't purchased · Monthly emails until launch</div></div>
+<div class="flow-phase phase-pre">PRE-LAUNCH</div>
+</div>
+<div class="flow-meta">
+<div><div class="label">Trigger</div><div class="val">Flow 1 complete</div></div>
+<div><div class="label">Emails</div><div class="val">3-4</div></div>
+<div><div class="label">Cadence</div><div class="val">Bi-weekly</div></div>
+<div><div class="label">Goal</div><div class="val">Stay warm</div></div>
+</div>
+<div class="emails">
+
+<div class="email"><div class="em-mock em-c"><div class="em-num">N1</div><div class="em-day">Wk 6</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:14px;color:var(--bk)">We sat down with<br>a dermatologist.</p><p style="font-size:8px;color:#666;margin-top:6px">22 published papers.<br>1 hour of honest answers.<br>Here's what she said about collagen.</p><div style="background:var(--mg);color:#fff;padding:5px 14px;border-radius:100px;font-size:7px;font-weight:700;display:inline-block;margin-top:6px">Watch the interview →</div></div></div><div class="em-info"><p class="em-t">Doctor interview drop</p><p class="em-d">Shares Dr. Park interview clip. Science content. Keeps brand top-of-mind without selling.</p><div class="em-tags"><span class="tag t-trigger">2 wks post-welcome</span><span class="tag t-goal">Content + authority</span></div></div></div>
+
+<div class="email"><div class="em-mock em-w"><div class="em-num">N2</div><div class="em-day">Wk 8</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:14px;color:var(--bk)">Update from<br>the lab.</p><p style="font-size:8px;color:#666;margin-top:6px">We're getting closer.<br>Here's what's been happening<br>behind the scenes.</p></div><p style="font-size:7px;text-align:center;color:var(--bk);opacity:.5;margin-top:auto">Building in public. More soon.</p></div><div class="em-info"><p class="em-t">"Update from the lab."</p><p class="em-d">BTS journey email. Manufacturing progress. Keeps list warm. Personal, not corporate.</p><div class="em-tags"><span class="tag t-trigger">2 wks after N1</span><span class="tag t-goal">Journey + warmth</span></div></div></div>
+
+<div class="email"><div class="em-mock em-w"><div class="em-num">N3</div><div class="em-day">Wk 10</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:14px;color:var(--bk)">We're almost ready.</p><p style="font-size:8px;color:#666;margin-top:6px">The formula is locked.<br>The packaging is printing.<br>You're on the list.</p><p style="font-size:8px;color:var(--mg);font-weight:700;margin-top:6px">Preorder opens soon.<br>You'll know first.</p></div></div><div class="em-info"><p class="em-t">"We're almost ready."</p><p class="em-d">Anticipation peak. Formula locked, packaging printing. "You'll know first."</p><div class="em-tags"><span class="tag t-trigger">2 wks after N2</span><span class="tag t-goal">Anticipation peak</span></div></div></div>
+
+</div>
+</div>
+
+<!-- ████████████████████████████████████████████████████████████████ -->
+<!-- FLOW 3: PREORDER ANNOUNCEMENT -->
+<!-- ████████████████████████████████████████████████████████████████ -->
+<div class="flow show" data-phase="pre">
+<div class="flow-header">
+<div class="flow-num">3</div>
+<div><div class="flow-title">Preorder Announcement</div><div class="flow-sub">Trigger: preorder page goes live (May wk2) · Sent to entire waitlist · Campaign, not flow</div></div>
+<div class="flow-phase phase-pre">PRE-LAUNCH</div>
+</div>
+<div class="flow-meta">
+<div><div class="label">Type</div><div class="val">Campaign</div></div>
+<div><div class="label">Emails</div><div class="val">3</div></div>
+<div><div class="label">Audience</div><div class="val">Full waitlist</div></div>
+<div><div class="label">Goal</div><div class="val">Preorders</div></div>
+</div>
+<div class="emails">
+
+<div class="email"><div class="em-mock em-m"><div class="em-num">PO1</div><div class="em-day">Day 0</div><p style="font-family:'Times New Roman',Georgia,serif;font-size:9px;letter-spacing:2px;font-style:italic;opacity:.5;margin-top:20px">sensitive ones</p><p style="font-family:'Times New Roman',Georgia,serif;font-size:18px;margin-top:auto;line-height:1.2">It's here.</p><p style="font-size:9px;opacity:.7;margin-top:4px">Skin Support is now available for preorder.</p><div style="background:#fff;color:var(--mg);padding:6px 16px;border-radius:100px;font-size:8px;font-weight:700;display:inline-block;margin-top:8px">Preorder now →</div><p style="font-size:7px;opacity:.4;margin-top:auto">You're on the list. You get first access.</p></div><div class="em-info"><p class="em-t">"It's here." — Preorder launch</p><p class="em-d">The moment the waitlist has been waiting for. Short, direct. First access for list members.</p><div class="em-tags"><span class="tag t-trigger">Preorder launch day</span><span class="tag t-goal">Conversion</span></div></div></div>
+
+<div class="email"><div class="em-mock em-w"><div class="em-num">PO2</div><div class="em-day">Day 2</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:14px;color:var(--bk)">Still thinking<br>about it?</p><p style="font-size:8px;color:#666;margin-top:6px">Here's what you'd be getting:<br>8 ingredients, every dose published.<br>5,000mg Verisol®. Dual-cap format.</p><div style="background:var(--mg);color:#fff;padding:5px 14px;border-radius:100px;font-size:7px;font-weight:700;display:inline-block;margin-top:6px">Preorder — $69/mo →</div></div><p class="em-footer">*Not evaluated by FDA.</p></div><div class="em-info"><p class="em-t">"Still thinking about it?"</p><p class="em-d">Reminder to non-openers of PO1. Value recap. Gentle nudge.</p><div class="em-tags"><span class="tag t-trigger">2 days, non-purchasers</span><span class="tag t-goal">Conversion</span><span class="tag t-dshea">DSHEA</span></div></div></div>
+
+<div class="email"><div class="em-mock em-c"><div class="em-num">PO3</div><div class="em-day">Day 5</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:14px;color:var(--bk)">Last chance for<br>early access pricing.</p><p style="font-size:8px;color:#666;margin-top:6px">After this week, preorder<br>pricing ends. Waitlist-only.</p><div style="background:var(--mg);color:#fff;padding:5px 14px;border-radius:100px;font-size:7px;font-weight:700;display:inline-block;margin-top:6px">Lock in your price →</div></div></div><div class="em-info"><p class="em-t">"Last chance for early access pricing."</p><p class="em-d">Urgency without fake scarcity. Preorder window closing. Final push.</p><div class="em-tags"><span class="tag t-trigger">5 days, non-purchasers</span><span class="tag t-goal">Conversion + urgency</span></div></div></div>
+
+</div>
+</div>
+
+<!-- ████████████████████████████████████████████████████████████████ -->
+<!-- FLOW 4: LAUNCH DAY BLAST -->
+<!-- ████████████████████████████████████████████████████████████████ -->
+<div class="flow show" data-phase="launch">
+<div class="flow-header">
+<div class="flow-num">4</div>
+<div><div class="flow-title">Launch Day</div><div class="flow-sub">Trigger: product officially live · Campaign to full list · THE moment</div></div>
+<div class="flow-phase phase-launch">LAUNCH</div>
+</div>
+<div class="flow-meta">
+<div><div class="label">Type</div><div class="val">Campaign</div></div>
+<div><div class="label">Emails</div><div class="val">2</div></div>
+<div><div class="label">Audience</div><div class="val">Full list</div></div>
+<div><div class="label">Goal</div><div class="val">First sales</div></div>
+</div>
+<div class="emails">
+
+<div class="email"><div class="em-mock em-m"><div class="em-num">L1</div><div class="em-day">Launch</div><p style="font-family:'Times New Roman',Georgia,serif;font-size:9px;letter-spacing:2px;font-style:italic;opacity:.5;margin-top:20px">sensitive ones</p><p style="font-family:'Times New Roman',Georgia,serif;font-size:22px;margin-top:auto">We're live.</p><p style="font-size:9px;opacity:.7;margin-top:4px">Skin Support is shipping now.</p><div style="background:#fff;color:var(--mg);padding:6px 16px;border-radius:100px;font-size:8px;font-weight:700;display:inline-block;margin-top:8px">Shop now →</div><p style="font-size:7px;opacity:.3;margin-top:auto">forsensitiveones.com</p></div><div class="em-info"><p class="em-t">"We're live." — Launch announcement</p><p class="em-d">The biggest email. Clean, simple, definitive. Product is shipping.</p><div class="em-tags"><span class="tag t-trigger">Launch day</span><span class="tag t-goal">Sales</span></div></div></div>
+
+<div class="email"><div class="em-mock em-w"><div class="em-num">L2</div><div class="em-day">Launch +2</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:14px;color:var(--bk)">You waited for this.</p><p style="font-size:8px;color:#666;margin-top:6px">[X] people have already ordered.<br>Here's what they're getting.</p><p style="font-size:8px;color:var(--bk);line-height:2;margin-top:6px">✓ 5,000mg Verisol® · ✓ 8 actives<br>✓ Dual-cap · ✓ Free shipping on sub</p><div style="background:var(--mg);color:#fff;padding:5px 14px;border-radius:100px;font-size:7px;font-weight:700;display:inline-block;margin-top:6px">Subscribe — $69/mo →</div></div></div><div class="em-info"><p class="em-t">"You waited for this."</p><p class="em-d">Follow-up for non-purchasers. Social proof (X people ordered). Gentle conversion.</p><div class="em-tags"><span class="tag t-trigger">2 days post-launch</span><span class="tag t-goal">Conversion</span><span class="tag t-dshea">DSHEA</span></div></div></div>
+
+</div>
+</div>
+
+<!-- ████████████████████████████████████████████████████████████████ -->
+<!-- FLOW 5: POST-PURCHASE WELCOME -->
+<!-- ████████████████████████████████████████████████████████████████ -->
+<div class="flow show" data-phase="launch">
+<div class="flow-header">
+<div class="flow-num">5</div>
+<div><div class="flow-title">Post-Purchase Welcome</div><div class="flow-sub">Trigger: first order placed · Onboarding + excitement · Exit on delivery</div></div>
+<div class="flow-phase phase-launch">LAUNCH</div>
+</div>
+<div class="flow-meta">
+<div><div class="label">Trigger</div><div class="val">First purchase</div></div>
+<div><div class="label">Emails</div><div class="val">3</div></div>
+<div><div class="label">Duration</div><div class="val">7 days</div></div>
+<div><div class="label">Goal</div><div class="val">Onboard + excite</div></div>
+</div>
+<div class="emails">
+
+<div class="email"><div class="em-mock em-w"><div class="em-num">PP1</div><div class="em-day">Immediate</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:16px;color:var(--bk)">Welcome to<br>Sensitive Ones.</p><p style="font-size:8px;color:#666;margin-top:6px">Your order is confirmed.<br>Here's what happens next.</p><p style="font-size:8px;color:var(--bk);line-height:2;margin-top:6px">1. We process your order (1-2 days)<br>2. You get a shipping email with tracking<br>3. It arrives at your door (5-7 days)</p></div></div><div class="em-info"><p class="em-t">"Welcome to Sensitive Ones."</p><p class="em-d">Order confirmation + what to expect. Reduces anxiety. Sets timeline.</p><div class="em-tags"><span class="tag t-trigger">Immediate after purchase</span><span class="tag t-goal">Onboard</span></div></div></div>
+
+<div class="email"><div class="em-mock em-c"><div class="em-num">PP2</div><div class="em-day">Day 2</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:14px;color:var(--bk)">While you wait —<br>here's how to take it.</p><p style="font-size:8px;color:#666;margin-top:6px">Cap. Tablets. Shot. Done.<br>Under 30 seconds.</p><p style="font-size:8px;color:var(--bk);margin-top:6px">Best taken: morning, with or without food.<br>Consistency > timing.</p></div></div><div class="em-info"><p class="em-t">"While you wait — how to take it."</p><p class="em-d">Preemptive usage education. Builds excitement for arrival.</p><div class="em-tags"><span class="tag t-trigger">2 days post-purchase</span><span class="tag t-goal">Education + excitement</span></div></div></div>
+
+<div class="email"><div class="em-mock em-w"><div class="em-num">PP3</div><div class="em-day">Day 5</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:14px;color:var(--bk)">Follow the journey.</p><p style="font-size:8px;color:#666;margin-top:6px">While your order is on its way,<br>here's where to find us.</p><p style="font-size:8px;color:var(--mg);font-weight:700;margin-top:6px">@sensitiveones on Instagram<br>@sensitiveones on TikTok</p></div></div><div class="em-info"><p class="em-t">"Follow the journey."</p><p class="em-d">Social follow ask. Natural timing — they're waiting for delivery, give them content.</p><div class="em-tags"><span class="tag t-trigger">5 days post-purchase</span><span class="tag t-goal">Social follow</span></div></div></div>
+
+</div>
+</div>
+
+<!-- ████████████████████████████████████████████████████████████████ -->
+<!-- FLOW 6: SHIPPING / FULFILLMENT -->
+<!-- ████████████████████████████████████████████████████████████████ -->
+<div class="flow show" data-phase="launch">
+<div class="flow-header">
+<div class="flow-num">6</div>
+<div><div class="flow-title">Shipping & Fulfillment</div><div class="flow-sub">Trigger: Shopify/Recharge webhook events · Transactional · Blocked on Justin (webhook config)</div></div>
+<div class="flow-phase phase-launch">LAUNCH</div>
+</div>
+<div class="flow-meta">
+<div><div class="label">Trigger</div><div class="val">Webhook</div></div>
+<div><div class="label">Emails</div><div class="val">3</div></div>
+<div><div class="label">Type</div><div class="val">Transactional</div></div>
+<div><div class="label">Status</div><div class="val" style="color:#e67e22">Blocked</div></div>
+</div>
+<div class="emails">
+
+<div class="email"><div class="em-mock em-w"><div class="em-num">S1</div><div class="em-day">Shipped</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:14px;color:var(--bk)">Your order<br>is on its way.</p><p style="font-size:8px;color:#666;margin-top:6px">Tracking: [tracking number]<br>Estimated delivery: [date]</p><div style="background:var(--mg);color:#fff;padding:5px 14px;border-radius:100px;font-size:7px;font-weight:700;display:inline-block;margin-top:6px">Track your order →</div></div></div><div class="em-info"><p class="em-t">"Your order is on its way."</p><p class="em-d">Shipped notification with tracking. Transactional. Triggered by fulfillment webhook.</p><div class="em-tags"><span class="tag t-trigger">Fulfillment webhook</span></div></div></div>
+
+<div class="email"><div class="em-mock em-c"><div class="em-num">S2</div><div class="em-day">Out for delivery</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:14px;color:var(--bk)">Almost there.</p><p style="font-size:8px;color:#666;margin-top:6px">Your Skin Support is<br>out for delivery today.</p></div></div><div class="em-info"><p class="em-t">"Almost there."</p><p class="em-d">Out for delivery notification. Builds excitement for the unboxing moment.</p><div class="em-tags"><span class="tag t-trigger">Delivery webhook</span></div></div></div>
+
+<div class="email"><div class="em-mock em-w"><div class="em-num">S3</div><div class="em-day">Delivered</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:14px;color:var(--bk)">It's here.</p><p style="font-size:8px;color:#666;margin-top:6px">Your Skin Support has been delivered.<br><br>Cap. Tablets. Shot. Done.<br>Under 30 seconds. Every morning.</p></div></div><div class="em-info"><p class="em-t">"It's here." — Delivered</p><p class="em-d">Delivered notification. Reminder of the ritual. Transitions to post-purchase flow.</p><div class="em-tags"><span class="tag t-trigger">Delivered webhook</span></div></div></div>
+
+</div>
+</div>
+
+<!-- ████████████████████████████████████████████████████████████████ -->
+<!-- FLOW 7: POST-DELIVERY CHECK-IN -->
+<!-- ████████████████████████████████████████████████████████████████ -->
+<div class="flow show" data-phase="post">
+<div class="flow-header">
+<div class="flow-num">7</div>
+<div><div class="flow-title">Post-Delivery Check-In</div><div class="flow-sub">Trigger: 7 days after delivery webhook · Retention + review + referral</div></div>
+<div class="flow-phase phase-post">POST-LAUNCH</div>
+</div>
+<div class="flow-meta">
+<div><div class="label">Trigger</div><div class="val">7 days post-delivery</div></div>
+<div><div class="label">Emails</div><div class="val">4</div></div>
+<div><div class="label">Duration</div><div class="val">21 days</div></div>
+<div><div class="label">Goal</div><div class="val">Retain + review</div></div>
+</div>
+<div class="emails">
+
+<div class="email"><div class="em-mock em-w"><div class="em-num">D1</div><div class="em-day">Day 7</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:14px;color:var(--bk)">How's it going?</p><p style="font-size:8px;color:#666;margin-top:6px">You've had Skin Support for a week.<br>Quick check-in — not a sales email.</p><p style="font-size:8px;color:var(--bk);margin-top:6px">Remember: collagen results take 4-8 weeks.<br>Consistency > intensity. One a day.</p></div></div><div class="em-info"><p class="em-t">"How's it going?" — 1 week check-in</p><p class="em-d">Manages expectations. "Results take 4-8 weeks." Reduces early churn from impatience.</p><div class="em-tags"><span class="tag t-trigger">7 days post-delivery</span><span class="tag t-goal">Retention</span></div></div></div>
+
+<div class="email"><div class="em-mock em-c"><div class="em-num">D2</div><div class="em-day">Day 14</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:14px;color:var(--bk)">The science<br>behind the wait.</p><p style="font-size:8px;color:#666;margin-top:6px">Why collagen takes weeks, not days.<br>What's happening inside right now.<br>Why consistency matters more than dose timing.</p><div style="background:var(--mg);color:#fff;padding:5px 14px;border-radius:100px;font-size:7px;font-weight:700;display:inline-block;margin-top:6px">Read the science →</div></div></div><div class="em-info"><p class="em-t">"The science behind the wait."</p><p class="em-d">Education on why collagen takes time. Links to Science page. Prevents "it's not working" cancellation.</p><div class="em-tags"><span class="tag t-trigger">14 days post-delivery</span><span class="tag t-goal">Retention + education</span><span class="tag t-dshea">DSHEA</span></div></div></div>
+
+<div class="email"><div class="em-mock em-w"><div class="em-num">D3</div><div class="em-day">Day 21</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:14px;color:var(--bk)">Leave a review?</p><p style="font-size:8px;color:#666;margin-top:6px">You've been taking Skin Support for 3 weeks.<br>Your experience helps others decide.</p><div style="background:var(--mg);color:#fff;padding:5px 14px;border-radius:100px;font-size:7px;font-weight:700;display:inline-block;margin-top:6px">Write a review →</div></div></div><div class="em-info"><p class="em-t">"Leave a review?"</p><p class="em-d">Review request at 3 weeks. Early enough to remember the experience, late enough for initial impressions.</p><div class="em-tags"><span class="tag t-trigger">21 days post-delivery</span><span class="tag t-goal">UGC + social proof</span></div></div></div>
+
+<div class="email"><div class="em-mock em-c"><div class="em-num">D4</div><div class="em-day">Day 28</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:14px;color:var(--bk)">Know someone<br>who reads labels?</p><p style="font-size:8px;color:#666;margin-top:6px">Share Sensitive Ones with a friend<br>who cares about what's inside.</p><div style="background:var(--mg);color:#fff;padding:5px 14px;border-radius:100px;font-size:7px;font-weight:700;display:inline-block;margin-top:6px">Share with a friend →</div></div></div><div class="em-info"><p class="em-t">"Know someone who reads labels?"</p><p class="em-d">Referral ask. Timed with second box arriving (subscribers). Community language.</p><div class="em-tags"><span class="tag t-trigger">28 days post-delivery</span><span class="tag t-goal">Referral</span></div></div></div>
+
+</div>
+</div>
+
+<!-- ████████████████████████████████████████████████████████████████ -->
+<!-- FLOW 8: BROWSE ABANDONMENT -->
+<!-- ████████████████████████████████████████████████████████████████ -->
+<div class="flow show" data-phase="always">
+<div class="flow-header">
+<div class="flow-num">8</div>
+<div><div class="flow-title">Browse Abandonment</div><div class="flow-sub">Trigger: viewed product page, didn't add to cart, has email on file · 2 emails</div></div>
+<div class="flow-phase phase-always">ALWAYS-ON</div>
+</div>
+<div class="flow-meta">
+<div><div class="label">Trigger</div><div class="val">Viewed PDP</div></div>
+<div><div class="label">Emails</div><div class="val">2</div></div>
+<div><div class="label">Duration</div><div class="val">3 days</div></div>
+<div><div class="label">Goal</div><div class="val">Return to site</div></div>
+</div>
+<div class="emails">
+
+<div class="email"><div class="em-mock em-w"><div class="em-num">BA1</div><div class="em-day">1 hr</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:14px;color:var(--bk)">Still looking?</p><p style="font-size:8px;color:#666;margin-top:6px">You were checking out Skin Support.<br>Here's what you'd be getting:</p><p style="font-size:8px;color:var(--bk);line-height:2;margin-top:4px">✓ 5,000mg Verisol® collagen<br>✓ 8 published ingredients<br>✓ Dual-cap format</p><div style="background:var(--mg);color:#fff;padding:5px 14px;border-radius:100px;font-size:7px;font-weight:700;display:inline-block;margin-top:4px">See Skin Support →</div></div></div><div class="em-info"><p class="em-t">"Still looking?"</p><p class="em-d">1 hour after browse. Gentle reminder with value recap. No discount — brand integrity.</p><div class="em-tags"><span class="tag t-trigger">1 hr after browse</span><span class="tag t-goal">Return to PDP</span></div></div></div>
+
+<div class="email"><div class="em-mock em-c"><div class="em-num">BA2</div><div class="em-day">Day 3</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:14px;color:var(--bk)">Questions?</p><p style="font-size:8px;color:#666;margin-top:6px">If something's holding you back,<br>we'd rather answer the question<br>than lose you.</p><div style="background:var(--mg);color:#fff;padding:5px 14px;border-radius:100px;font-size:7px;font-weight:700;display:inline-block;margin-top:6px">Read the FAQ →</div></div></div><div class="em-info"><p class="em-t">"Questions?"</p><p class="em-d">Addresses objections. Links to FAQ. Honest, not pushy. "We'd rather answer than lose you."</p><div class="em-tags"><span class="tag t-trigger">3 days, no purchase</span><span class="tag t-goal">Objection handling</span></div></div></div>
+
+</div>
+</div>
+
+<!-- ████████████████████████████████████████████████████████████████ -->
+<!-- FLOW 9: CART ABANDONMENT -->
+<!-- ████████████████████████████████████████████████████████████████ -->
+<div class="flow show" data-phase="always">
+<div class="flow-header">
+<div class="flow-num">9</div>
+<div><div class="flow-title">Cart Abandonment</div><div class="flow-sub">Trigger: added to cart, didn't purchase · 3 emails · Highest-converting flow in ecommerce</div></div>
+<div class="flow-phase phase-always">ALWAYS-ON</div>
+</div>
+<div class="flow-meta">
+<div><div class="label">Trigger</div><div class="val">Cart created</div></div>
+<div><div class="label">Emails</div><div class="val">3</div></div>
+<div><div class="label">Duration</div><div class="val">5 days</div></div>
+<div><div class="label">Benchmark</div><div class="val">5-10% recovery</div></div>
+</div>
+<div class="emails">
+
+<div class="email"><div class="em-mock em-w"><div class="em-num">CA1</div><div class="em-day">1 hr</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:14px;color:var(--bk)">You left something<br>behind.</p><div style="background:var(--cream);border-radius:6px;padding:8px;margin:6px 0"><p style="font-size:8px;color:var(--bk);font-weight:700">Skin Support — 28 units</p><p style="font-size:8px;color:var(--mg)">$69/mo (subscribe) or $99 (one-time)</p></div><div style="background:var(--mg);color:#fff;padding:5px 14px;border-radius:100px;font-size:7px;font-weight:700;display:inline-block;margin-top:4px">Complete your order →</div></div></div><div class="em-info"><p class="em-t">"You left something behind."</p><p class="em-d">1 hour after cart abandon. Shows the product in cart. Direct CTA to checkout. No discount yet.</p><div class="em-tags"><span class="tag t-trigger">1 hr after cart</span><span class="tag t-goal">Recovery</span></div></div></div>
+
+<div class="email"><div class="em-mock em-c"><div class="em-num">CA2</div><div class="em-day">Day 1</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:14px;color:var(--bk)">Here's why<br>people subscribe.</p><p style="font-size:8px;color:#666;margin-top:6px">✓ 30% off every month<br>✓ Free shipping<br>✓ Skip, pause, cancel anytime<br>✓ Lock in your price</p><div style="background:var(--mg);color:#fff;padding:5px 14px;border-radius:100px;font-size:7px;font-weight:700;display:inline-block;margin-top:6px">Subscribe — $69/mo →</div></div></div><div class="em-info"><p class="em-t">"Here's why people subscribe."</p><p class="em-d">24 hours. Subscription value prop. Addresses "is it worth it?" objection.</p><div class="em-tags"><span class="tag t-trigger">24 hrs, no purchase</span><span class="tag t-goal">Recovery + sub push</span></div></div></div>
+
+<div class="email"><div class="em-mock em-w"><div class="em-num">CA3</div><div class="em-day">Day 5</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:14px;color:var(--bk)">Last reminder.</p><p style="font-size:8px;color:#666;margin-top:6px">Your cart is still waiting.<br>8 ingredients. Every dose published.<br>No proprietary blends.</p><p style="font-size:8px;color:var(--mg);font-weight:700;margin-top:6px">This was built for you.</p><div style="background:var(--mg);color:#fff;padding:5px 14px;border-radius:100px;font-size:7px;font-weight:700;display:inline-block;margin-top:6px">Complete your order →</div></div></div><div class="em-info"><p class="em-t">"Last reminder."</p><p class="em-d">Final cart abandonment email. "This was built for you" callback. No more emails after this.</p><div class="em-tags"><span class="tag t-trigger">5 days, no purchase</span><span class="tag t-goal">Final recovery</span></div></div></div>
+
+</div>
+</div>
+
+<!-- ████████████████████████████████████████████████████████████████ -->
+<!-- FLOW 10: SUBSCRIPTION MANAGEMENT -->
+<!-- ████████████████████████████████████████████████████████████████ -->
+<div class="flow show" data-phase="post">
+<div class="flow-header">
+<div class="flow-num">10</div>
+<div><div class="flow-title">Subscription Lifecycle</div><div class="flow-sub">Trigger: Recharge events (skip, pause, upcoming renewal, payment failed)</div></div>
+<div class="flow-phase phase-post">POST-LAUNCH</div>
+</div>
+<div class="flow-meta">
+<div><div class="label">Trigger</div><div class="val">Recharge events</div></div>
+<div><div class="label">Emails</div><div class="val">5</div></div>
+<div><div class="label">Type</div><div class="val">Automated</div></div>
+<div><div class="label">Goal</div><div class="val">Retain + recover</div></div>
+</div>
+<div class="emails">
+
+<div class="email"><div class="em-mock em-w"><div class="em-num">SL1</div><div class="em-day">3 days before</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:14px;color:var(--bk)">Your next box<br>ships in 3 days.</p><p style="font-size:8px;color:#666;margin-top:6px">28 more units of Skin Support.<br>Same formula. Same price.</p><p style="font-size:8px;color:#999;margin-top:6px">Need to skip or change? <span style="color:var(--mg)">Manage subscription →</span></p></div></div><div class="em-info"><p class="em-t">Upcoming renewal notice</p><p class="em-d">3 days before charge. Transparency. Easy skip/change option. Required by some state auto-renewal laws.</p><div class="em-tags"><span class="tag t-trigger">3 days pre-renewal</span><span class="tag t-goal">Transparency</span></div></div></div>
+
+<div class="email"><div class="em-mock em-c"><div class="em-num">SL2</div><div class="em-day">Skipped</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:14px;color:var(--bk)">No worries.<br>We'll be here.</p><p style="font-size:8px;color:#666;margin-top:6px">You skipped this month.<br>Your next box will ship on [date].</p><p style="font-size:8px;color:#999;margin-top:6px">Changed your mind? <span style="color:var(--mg)">Unskip →</span></p></div></div><div class="em-info"><p class="em-t">"No worries. We'll be here."</p><p class="em-d">Skip confirmation. No guilt. Friendly. Unskip option available.</p><div class="em-tags"><span class="tag t-trigger">Skip event</span><span class="tag t-goal">Acknowledge + retain</span></div></div></div>
+
+<div class="email"><div class="em-mock em-w"><div class="em-num">SL3</div><div class="em-day">Paused</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:14px;color:var(--bk)">Your subscription<br>is paused.</p><p style="font-size:8px;color:#666;margin-top:6px">Take the time you need.<br>When you're ready, your plan is waiting.</p><p style="font-size:8px;color:#999;margin-top:6px"><span style="color:var(--mg)">Resume anytime →</span></p></div></div><div class="em-info"><p class="em-t">"Your subscription is paused."</p><p class="em-d">Pause confirmation. Zero pressure. "Take the time you need." Resume link.</p><div class="em-tags"><span class="tag t-trigger">Pause event</span><span class="tag t-goal">Acknowledge</span></div></div></div>
+
+<div class="email"><div class="em-mock em-m"><div class="em-num">SL4</div><div class="em-day">Payment failed</div><p style="font-family:'Times New Roman',Georgia,serif;font-size:9px;letter-spacing:2px;font-style:italic;opacity:.5;margin-top:16px">sensitive ones</p><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:14px">Quick heads up —<br>your payment didn't go through.</p><p style="font-size:8px;opacity:.7;margin-top:6px">We'll try again in 3 days.<br>Or you can update your card now.</p><div style="background:#fff;color:var(--mg);padding:5px 14px;border-radius:100px;font-size:7px;font-weight:700;display:inline-block;margin-top:6px">Update payment →</div></div></div><div class="em-info"><p class="em-t">"Your payment didn't go through."</p><p class="em-d">Failed payment dunning email. Friendly, not alarming. Retry in 3 days. Update card CTA.</p><div class="em-tags"><span class="tag t-trigger">Payment failure</span><span class="tag t-goal">Payment recovery</span></div></div></div>
+
+<div class="email"><div class="em-mock em-w"><div class="em-num">SL5</div><div class="em-day">2nd failure</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:14px;color:var(--bk)">We don't want to<br>lose you.</p><p style="font-size:8px;color:#666;margin-top:6px">Your payment failed again.<br>We'll try one more time in 3 days.<br>After that, your subscription will pause.</p><div style="background:var(--mg);color:#fff;padding:5px 14px;border-radius:100px;font-size:7px;font-weight:700;display:inline-block;margin-top:6px">Update payment →</div></div></div><div class="em-info"><p class="em-t">"We don't want to lose you."</p><p class="em-d">2nd dunning email. More urgent. Clear consequence (auto-pause). Human tone.</p><div class="em-tags"><span class="tag t-trigger">2nd payment failure</span><span class="tag t-goal">Payment recovery</span></div></div></div>
+
+</div>
+</div>
+
+<!-- ████████████████████████████████████████████████████████████████ -->
+<!-- FLOW 11: WINBACK -->
+<!-- ████████████████████████████████████████████████████████████████ -->
+<div class="flow show" data-phase="post">
+<div class="flow-header">
+<div class="flow-num">11</div>
+<div><div class="flow-title">Winback (Cancelled Subscribers)</div><div class="flow-sub">Trigger: subscription cancelled · 30/60/90 day drip</div></div>
+<div class="flow-phase phase-post">POST-LAUNCH</div>
+</div>
+<div class="flow-meta">
+<div><div class="label">Trigger</div><div class="val">Cancellation</div></div>
+<div><div class="label">Emails</div><div class="val">3</div></div>
+<div><div class="label">Duration</div><div class="val">90 days</div></div>
+<div><div class="label">Goal</div><div class="val">Re-subscribe</div></div>
+</div>
+<div class="emails">
+
+<div class="email"><div class="em-mock em-w"><div class="em-num">W1</div><div class="em-day">Day 30</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:14px;color:var(--bk)">We missed you.</p><p style="font-size:8px;color:#666;margin-top:6px">It's been a month since you cancelled.<br>Here's what we've been working on.</p><p style="font-size:8px;color:var(--bk);margin-top:6px">[New content / product update / community news]</p></div></div><div class="em-info"><p class="em-t">"We missed you." — 30-day winback</p><p class="em-d">Soft re-engagement. What's new since they left. No discount. Brand update energy.</p><div class="em-tags"><span class="tag t-trigger">30 days post-cancel</span><span class="tag t-goal">Re-engage</span></div></div></div>
+
+<div class="email"><div class="em-mock em-c"><div class="em-num">W2</div><div class="em-day">Day 60</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:14px;color:var(--bk)">Your skin knows<br>when you stop.</p><p style="font-size:8px;color:#666;margin-top:6px">Collagen supplementation works best<br>with consistency over months.<br>Stopping resets the clock.</p><div style="background:var(--mg);color:#fff;padding:5px 14px;border-radius:100px;font-size:7px;font-weight:700;display:inline-block;margin-top:6px">Re-subscribe →</div></div></div><div class="em-info"><p class="em-t">"Your skin knows when you stop."</p><p class="em-d">60-day winback. Science-based retention argument. Consistency messaging.</p><div class="em-tags"><span class="tag t-trigger">60 days post-cancel</span><span class="tag t-goal">Re-subscribe</span><span class="tag t-dshea">DSHEA</span></div></div></div>
+
+<div class="email"><div class="em-mock em-w"><div class="em-num">W3</div><div class="em-day">Day 90</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:14px;color:var(--bk)">No hard feelings.</p><p style="font-size:8px;color:#666;margin-top:6px">If Skin Support wasn't right for you,<br>that's okay.<br><br>But if you're curious again,<br>your plan is still here.</p><div style="background:var(--mg);color:#fff;padding:5px 14px;border-radius:100px;font-size:7px;font-weight:700;display:inline-block;margin-top:6px">Come back →</div></div></div><div class="em-info"><p class="em-t">"No hard feelings."</p><p class="em-d">Final winback. Graceful close. "Your plan is still here." Last email in winback sequence.</p><div class="em-tags"><span class="tag t-trigger">90 days post-cancel</span><span class="tag t-goal">Final attempt</span></div></div></div>
+
+</div>
+</div>
+
+<!-- ████████████████████████████████████████████████████████████████ -->
+<!-- FLOW 12: REFERRAL -->
+<!-- ████████████████████████████████████████████████████████████████ -->
+<div class="flow show" data-phase="post">
+<div class="flow-header">
+<div class="flow-num">12</div>
+<div><div class="flow-title">Referral Program</div><div class="flow-sub">Trigger: 2+ orders completed · Loyal customer referral ask</div></div>
+<div class="flow-phase phase-post">POST-LAUNCH</div>
+</div>
+<div class="flow-meta">
+<div><div class="label">Trigger</div><div class="val">2+ orders</div></div>
+<div><div class="label">Emails</div><div class="val">2</div></div>
+<div><div class="label">Incentive</div><div class="val">$10 give / $10 get</div></div>
+<div><div class="label">Goal</div><div class="val">New customers</div></div>
+</div>
+<div class="emails">
+
+<div class="email"><div class="em-mock em-w"><div class="em-num">R1</div><div class="em-day">After 2nd order</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:14px;color:var(--bk)">Give $10. Get $10.</p><p style="font-size:8px;color:#666;margin-top:6px">Know someone who reads labels?<br>Share your unique link.<br>They get $10 off. You get $10 off.</p><div style="background:var(--mg);color:#fff;padding:5px 14px;border-radius:100px;font-size:7px;font-weight:700;display:inline-block;margin-top:6px">Share your link →</div></div></div><div class="em-info"><p class="em-t">"Give $10. Get $10."</p><p class="em-d">Referral launch. After 2nd order = proven customer. Community language: "someone who reads labels."</p><div class="em-tags"><span class="tag t-trigger">After 2nd order</span><span class="tag t-goal">Referral acquisition</span></div></div></div>
+
+<div class="email"><div class="em-mock em-c"><div class="em-num">R2</div><div class="em-day">Monthly</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:14px;color:var(--bk)">Your friends<br>are waiting.</p><p style="font-size:8px;color:#666;margin-top:6px">You've shared Skin Support with [X] people.<br>[Y] have ordered.<br>You've earned $[Z] in credit.</p><div style="background:var(--mg);color:#fff;padding:5px 14px;border-radius:100px;font-size:7px;font-weight:700;display:inline-block;margin-top:6px">Share again →</div></div></div><div class="em-info"><p class="em-t">"Your friends are waiting."</p><p class="em-d">Monthly referral reminder with stats. How many shared, how many ordered, credits earned.</p><div class="em-tags"><span class="tag t-trigger">Monthly, active referrers</span><span class="tag t-goal">Ongoing referrals</span></div></div></div>
+
+</div>
+</div>
+
+<!-- ████████████████████████████████████████████████████████████████ -->
+<!-- FLOW 13: SUNSET / UNENGAGED -->
+<!-- ████████████████████████████████████████████████████████████████ -->
+<div class="flow show" data-phase="always">
+<div class="flow-header">
+<div class="flow-num">13</div>
+<div><div class="flow-title">Sunset (Unengaged Subscribers)</div><div class="flow-sub">Trigger: no email opens in 60+ days · Clean the list or re-engage</div></div>
+<div class="flow-phase phase-always">ALWAYS-ON</div>
+</div>
+<div class="flow-meta">
+<div><div class="label">Trigger</div><div class="val">60 days no open</div></div>
+<div><div class="label">Emails</div><div class="val">2</div></div>
+<div><div class="label">Duration</div><div class="val">7 days</div></div>
+<div><div class="label">Goal</div><div class="val">Re-engage or remove</div></div>
+</div>
+<div class="emails">
+
+<div class="email"><div class="em-mock em-w"><div class="em-num">SU1</div><div class="em-day">Day 0</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:14px;color:var(--bk)">Still interested?</p><p style="font-size:8px;color:#666;margin-top:6px">We noticed you haven't opened<br>our emails in a while.<br><br>If you'd like to keep hearing from us,<br>just click below.</p><div style="background:var(--mg);color:#fff;padding:5px 14px;border-radius:100px;font-size:7px;font-weight:700;display:inline-block;margin-top:6px">Yes, keep me on the list →</div></div></div><div class="em-info"><p class="em-t">"Still interested?"</p><p class="em-d">Re-engagement check. Click = stay. No click + no open on SU2 = remove from list. Keeps list healthy.</p><div class="em-tags"><span class="tag t-trigger">60 days no open</span><span class="tag t-goal">Re-engage or clean</span></div></div></div>
+
+<div class="email"><div class="em-mock em-c"><div class="em-num">SU2</div><div class="em-day">Day 7</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:14px;color:var(--bk)">Last email<br>from us.</p><p style="font-size:8px;color:#666;margin-top:6px">We'll remove you from the list<br>after this email unless you click below.<br><br>No hard feelings.</p><div style="background:var(--mg);color:#fff;padding:5px 14px;border-radius:100px;font-size:7px;font-weight:700;display:inline-block;margin-top:6px">Keep me subscribed →</div></div></div><div class="em-info"><p class="em-t">"Last email from us."</p><p class="em-d">Final sunset email. If no engagement → suppress from list. Protects deliverability and sender reputation.</p><div class="em-tags"><span class="tag t-trigger">7 days after SU1</span><span class="tag t-goal">List hygiene</span></div></div></div>
+
+</div>
+</div>
+
+<!-- ████████████████████████████████████████████████████████████████ -->
+<!-- FLOW 14: LOYALTY / VIP -->
+<!-- ████████████████████████████████████████████████████████████████ -->
+<div class="flow show" data-phase="always">
+<div class="flow-header">
+<div class="flow-num">14</div>
+<div><div class="flow-title">Loyal Customer / VIP</div><div class="flow-sub">Trigger: 3+ months subscribed continuously · Reward loyalty, deepen relationship</div></div>
+<div class="flow-phase phase-always">ALWAYS-ON</div>
+</div>
+<div class="flow-meta">
+<div><div class="label">Trigger</div><div class="val">3+ months active</div></div>
+<div><div class="label">Emails</div><div class="val">3</div></div>
+<div><div class="label">Cadence</div><div class="val">Milestone-based</div></div>
+<div><div class="label">Goal</div><div class="val">Retain + delight</div></div>
+</div>
+<div class="emails">
+
+<div class="email"><div class="em-mock em-m"><div class="em-num">V1</div><div class="em-day">Month 3</div><p style="font-family:'Times New Roman',Georgia,serif;font-size:9px;letter-spacing:2px;font-style:italic;opacity:.5;margin-top:16px">sensitive ones</p><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:16px">3 months in.</p><p style="font-size:9px;opacity:.7;margin-top:4px">That's 84 units of Skin Support.<br>252,000mg of Verisol® collagen.<br>You're one of us.</p></div></div><div class="em-info"><p class="em-t">"3 months in." — Milestone celebration</p><p class="em-d">Celebrates consistency. Stats on what they've consumed. Identity reinforcement: "You're one of us."</p><div class="em-tags"><span class="tag t-trigger">3 months subscribed</span><span class="tag t-goal">Retention + delight</span></div></div></div>
+
+<div class="email"><div class="em-mock em-w"><div class="em-num">V2</div><div class="em-day">Month 6</div><div class="em-brand">sensitive ones</div><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:14px;color:var(--bk)">6 months.<br>You're in the study range.</p><p style="font-size:8px;color:#666;margin-top:6px">The Verisol® cellulite study ran for 6 months.<br>You've now been taking it for the same duration.<br><br>Thank you for trusting the process.</p></div></div><div class="em-info"><p class="em-t">"6 months. You're in the study range."</p><p class="em-d">Science-tied milestone. "You've been taking it as long as the study ran." Powerful retention moment.</p><div class="em-tags"><span class="tag t-trigger">6 months subscribed</span><span class="tag t-goal">Retention</span><span class="tag t-dshea">DSHEA</span></div></div></div>
+
+<div class="email"><div class="em-mock em-m"><div class="em-num">V3</div><div class="em-day">Month 12</div><p style="font-family:'Times New Roman',Georgia,serif;font-size:9px;letter-spacing:2px;font-style:italic;opacity:.5;margin-top:16px">sensitive ones</p><div style="margin:auto 0;text-align:center"><p style="font-family:'Times New Roman',Georgia,serif;font-size:16px">One year.</p><p style="font-size:9px;opacity:.7;margin-top:4px">336 units. 1,680,000mg of Verisol®.<br>You stuck with it for a full year.<br><br>We'd love to hear your story.</p><div style="background:#fff;color:var(--mg);padding:5px 14px;border-radius:100px;font-size:7px;font-weight:700;display:inline-block;margin-top:6px">Share your story →</div></div></div><div class="em-info"><p class="em-t">"One year." — Anniversary</p><p class="em-d">12-month celebration. Cumulative stats. UGC ask: "Share your story." Customer spotlight opportunity.</p><div class="em-tags"><span class="tag t-trigger">12 months subscribed</span><span class="tag t-goal">Retain + UGC</span></div></div></div>
+
+</div>
+</div>
+
+</div><!-- end wrap -->
+
+<script>
+function ff(v){
+document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('on'));
+event.target.classList.add('on');
+document.querySelectorAll('.flow').forEach(f=>{
+if(v==='all') f.classList.add('show');
+else f.dataset.phase===v?f.classList.add('show'):f.classList.remove('show');
+});
+}
+</script>
+</body>
+</html>
